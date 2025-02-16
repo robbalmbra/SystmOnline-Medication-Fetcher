@@ -12,13 +12,13 @@ A Python script to interact with the SystmOnline platform, allowing users to log
 ## Usage
 
 ```sh
-python script.py --username YOUR_USERNAME --password YOUR_PASSWORD --medications
+python medication.py --username YOUR_USERNAME --password YOUR_PASSWORD --medications
 ```
 
 To order medications:
 
 ```sh
-python script.py --username YOUR_USERNAME --password YOUR_PASSWORD --order-medications --all
+python medication.py --username YOUR_USERNAME --password YOUR_PASSWORD --order-medications --all
 ```
 
 ## Requirements
