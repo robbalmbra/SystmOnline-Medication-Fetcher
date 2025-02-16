@@ -157,14 +157,24 @@ class SystmOnline:
             print("No medications selected for ordering.")
             return
         
+        # Request medication
         post_data = self.extract_form_data("RequestMedication")
         if not post_data:
             print("Error: Unable to retrieve request form.")
             return
-        
+
         post_data.update({"Drug": med_ids, "MedRequestType": "Request existing medication"})
         response = self.session.post(f"{self.BASE_URL}/2/RequestMedication", data=post_data)
-        
+
+        # Confirm medication
+        post_data = self.extract_form_data("RequestMedication")
+        if not post_data:
+            print("Error: Unable to retrieve request form.")
+            return
+
+        # Send request
+        response = self.session.post(f"{self.BASE_URL}/2/RequestMedication", data=post_data)
+
         print("Medication request submitted successfully." if response.ok else "Error submitting medication request.")
 
 # Parse command-line arguments
