@@ -121,14 +121,22 @@ class SystmOnline:
 
         if order_medications:
             df = df[df["Can Be Ordered"] == "Yes"]
+
             if df.empty:
                 print("No medications available for ordering.")
                 return
-            
+
+            # Reset ids to 1
+            df = df.reset_index(drop=True)
+            df.index = df.index + 1
+            print(df[["Drug Name", "Last Issued", "Last Requested", "Can Be Ordered"]])
+
             selected_ids = df["ID"].tolist() if order_all else self.prompt_order_medications(df)
             self.order_medications(selected_ids)
         
-        print(df[["Drug Name", "Last Issued", "Last Requested", "Can Be Ordered"]])
+        else:
+            df.index = df.index + 1
+            print(df[["Drug Name", "Last Issued", "Last Requested", "Can Be Ordered"]])
 
     def prompt_order_medications(self, df: pd.DataFrame) -> list:
         """
@@ -139,7 +147,7 @@ class SystmOnline:
         """
         try:
             user_input = input("\nEnter the medication indices to order (comma separated, e.g. 1,2,5): ")
-            selected_indices = [int(x.strip()) for x in user_input.split(",")]
+            selected_indices = [(int(x.strip())-1) for x in user_input.split(",")]
             ordered_medications = df.iloc[selected_indices].reset_index(drop=True)
             print("\nOrdered medications:", ", ".join(ordered_medications["Drug Name"].tolist()))
             return ordered_medications["ID"].tolist()
@@ -165,9 +173,11 @@ class SystmOnline:
 
         post_data.update({"Drug": med_ids, "MedRequestType": "Request existing medication"})
         response = self.session.post(f"{self.BASE_URL}/2/RequestMedication", data=post_data)
+        self.soup = BeautifulSoup(response.text, "html.parser")
 
         # Confirm medication
         post_data = self.extract_form_data("RequestMedication")
+
         if not post_data:
             print("Error: Unable to retrieve request form.")
             return
