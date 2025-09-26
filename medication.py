@@ -58,15 +58,42 @@ class SystmOnline:
     def extract_form_data(self, action: str) -> dict:
         """
         Extracts hidden form data required for POST requests.
-        
+    
         :param action: The action attribute of the form to be extracted.
         :return: A dictionary of form field names and values.
+                 If multiple fields share the same name, values are stored in a list.
         """
         form = self.soup.find("form", {"method": "POST", "action": action})
         if not form:
             return None
-        
-        return {input_tag["name"]: input_tag.get("value", "") for input_tag in form.find_all("input", {"type": "HIDDEN"})}
+
+        form_data = {}
+        for input_tag in form.find_all("input", {"type": "HIDDEN"}):
+            name = input_tag.get("name")
+            value = input_tag.get("value", "")
+
+            if name in form_data:
+                # Convert existing value into a list if it isn't already
+                if not isinstance(form_data[name], list):
+                    form_data[name] = [form_data[name]]
+                form_data[name].append(value)
+            else:
+                form_data[name] = value
+
+        return form_data
+
+    #def extract_form_data(self, action: str) -> dict:
+    #    """
+    #    Extracts hidden form data required for POST requests.
+    #    
+    #    :param action: The action attribute of the form to be extracted.
+    #    :return: A dictionary of form field names and values.
+    #    """
+    #    form = self.soup.find("form", {"method": "POST", "action": action})
+    #    if not form:
+    #        return None
+    #    
+    #    return {input_tag["name"]: input_tag.get("value", "") for input_tag in form.find_all("input", {"type": "HIDDEN"})}
 
     def query_medications(self, order_medications: bool = False, order_all: bool = False):
         """
@@ -171,12 +198,16 @@ class SystmOnline:
             print("Error: Unable to retrieve request form.")
             return
 
+        print(post_data)
+
         post_data.update({"Drug": med_ids, "MedRequestType": "Request existing medication"})
         response = self.session.post(f"{self.BASE_URL}/2/RequestMedication", data=post_data)
         self.soup = BeautifulSoup(response.text, "html.parser")
 
         # Confirm medication
         post_data = self.extract_form_data("RequestMedication")
+
+        print(post_data);
 
         if not post_data:
             print("Error: Unable to retrieve request form.")
