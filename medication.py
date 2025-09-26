@@ -82,19 +82,6 @@ class SystmOnline:
 
         return form_data
 
-    #def extract_form_data(self, action: str) -> dict:
-    #    """
-    #    Extracts hidden form data required for POST requests.
-    #    
-    #    :param action: The action attribute of the form to be extracted.
-    #    :return: A dictionary of form field names and values.
-    #    """
-    #    form = self.soup.find("form", {"method": "POST", "action": action})
-    #    if not form:
-    #        return None
-    #    
-    #    return {input_tag["name"]: input_tag.get("value", "") for input_tag in form.find_all("input", {"type": "HIDDEN"})}
-
     def query_medications(self, order_medications: bool = False, order_all: bool = False):
         """
         Queries the medication list and optionally orders medications.
@@ -140,6 +127,7 @@ class SystmOnline:
         :param order_all: Whether to order all available medications.
         """
         if not medications:
+
             print("No medications found.")
             return
 
@@ -198,8 +186,6 @@ class SystmOnline:
             print("Error: Unable to retrieve request form.")
             return
 
-        print(post_data)
-
         post_data.update({"Drug": med_ids, "MedRequestType": "Request existing medication"})
         response = self.session.post(f"{self.BASE_URL}/2/RequestMedication", data=post_data)
         self.soup = BeautifulSoup(response.text, "html.parser")
@@ -207,15 +193,12 @@ class SystmOnline:
         # Confirm medication
         post_data = self.extract_form_data("RequestMedication")
 
-        print(post_data);
-
         if not post_data:
             print("Error: Unable to retrieve request form.")
             return
 
         # Send request
         response = self.session.post(f"{self.BASE_URL}/2/RequestMedication", data=post_data)
-
         print("Medication request submitted successfully." if response.ok else "Error submitting medication request.")
 
 # Parse command-line arguments
